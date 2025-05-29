@@ -1,0 +1,30 @@
+{
+  "name": "agricast",
+  "version": "1.0.0",
+  "description": "Weather App for Farmers",
+  "scripts": {
+    "deploy": "firebase deploy",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "emulators": "firebase emulators:start",
+    "test": "npm run test:functions && npm run test:mobile",
+    "test:functions": "cd functions && npm test",
+    "test:mobile": "cd mobile && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bushels/Agricast.git"
+  },
+  "keywords": [
+    "weather",
+    "agriculture",
+    "farming",
+    "react-native",
+    "firebase"
+  ],
+  "author": "Bushels",
+  "license": "MIT",
+  "devDependencies": {
+    "firebase-tools": "^12.0.0"
+  }
+}
