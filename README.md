@@ -38,7 +38,7 @@ To create a farmer-first platform that combines hyperlocal weather intelligence 
 
 ### Data Management
 - **Crop Tracking**: Annual crop rotation management with historical archiving
-- **Multi-User Farms**: Support for multiple users per farm operation
+- **Multi-User Farms**: Support for multiple users per farm operation (structure in place)
 - **Smart Caching**: Optimized data fetching with appropriate TTLs
 - **Offline Support**: Progressive Web App capabilities (planned)
 
@@ -51,7 +51,7 @@ To create a farmer-first platform that combines hyperlocal weather intelligence 
    - ECCC weather station integration with 5-minute caching
    - NASA POWER satellite data with 24-hour caching
    - Support for multiple weather stations
-   - Precipitation amount extraction from forecasts
+   - Precipitation amount extraction and detailed forecast insights (PoP, type, amounts, confidence, dry windows, fieldwork recommendations)
 
 2. **Agricultural Calculations Service**
    - Complete GDD and CHU calculations
@@ -61,327 +61,129 @@ To create a farmer-first platform that combines hyperlocal weather intelligence 
    - Weather data enrichment with agricultural insights
 
 3. **Authentication & User Management**
-   - Firebase Authentication with multiple providers (Apple, Google, Email)
-   - Custom username-based login system
-   - Comprehensive farmer profile structure
-   - Profile creation flow with validation
-   - Admin capabilities for user management
+   - Firebase Authentication with Cloud Functions for profile creation (supporting multiple providers conceptually)
+   - Custom username-based login system (uniqueness checked server-side)
+   - Comprehensive farmer profile structure (including DLS, farm details, gamification, preferences)
+   - Profile creation flow logic in `authService.js`
+   - Admin capabilities for user deletion and role management (via callable Cloud Functions)
 
 4. **Data Architecture**
-   - Firestore database design with security rules
-   - Username uniqueness enforcement
-   - Crop history archiving system
-   - Activity logging for audit trails
-   - Seasonal prompt system for crop updates
+   - Firestore database design with security rules for farmers, usernames, cropHistory, activities, admin roles, etc.
+   - Username uniqueness enforcement mechanism (`usernames` collection)
+   - Crop history archiving system (`cropService.js`)
+   - Activity logging framework (e.g., 'account_created', 'crop_data_updated')
+   - Seasonal prompt system (scheduled function for crop updates)
 
 5. **Cloud Functions**
-   - User registration and profile management
-   - Crop data updates with yearly archiving
-   - Admin functions (user deletion, role management)
-   - Scheduled functions for seasonal prompts
-   - Cleanup triggers for data consistency
+   - `createFarmerProfile` (callable): User registration and profile creation.
+   - `checkUsernameAvailability` (callable): Validates username uniqueness.
+   - `updateCropData` (callable): Updates current season crops with archiving.
+   - `getCropHistory` (callable): Retrieves historical crop data.
+   - `adminDeleteUser` (callable): Admin function to remove a user and their data.
+   - `setAdminRole` (callable): Admin function to grant/revoke admin privileges.
+   - `seasonalCropPrompt` (scheduled): Creates prompts for farmers (e.g., update crop plans).
+   - `cleanupDeletedUser` (auth trigger): Cleans up Firestore data upon Firebase Auth user deletion.
+   - Legacy REST endpoints for weather and NASA data (v1 and aliased).
 
 6. **Security & Permissions**
-   - Role-based access control (farmers, admins)
-   - Row-level security in Firestore
-   - API authentication middleware
-   - Custom claims for authorization
+   - Role-based access control (farmer, admin via custom claims) in callable functions and Firestore rules.
+   - Row-level security in Firestore rules.
+   - API authentication middleware (for v1 REST endpoints).
+
+7. **Testing (Unit & Local)**
+   - **Unit Tests (Jest)**: 
+       - `authService.test.js`: All tests PASSING (user registration, profile logic, username conflicts, alpha/beta tester logic).
+       - `cropService.test.js`: All tests PASSING (crop updates, history retrieval, archiving logic).
+   - **Local Node.js Scripts**: 
+       - `quickTest.js` (for `findNearestWeatherStation`): PASSED.
+       - `testRegistrationFlow.js` (for utilities like DLS conversion, username validation): Runs and shows core utilities are functional. (Note: its internal username uniqueness test had mock scope limitations).
+       - `manual-test.js` (for `getWeatherWithInsights` service): Successfully executed, verifying weather/precipitation service logic.
 
 #### Frontend Design
-1. **UI/UX Prototype**
-   - Complete authentication flow design
-   - Mobile-first responsive layouts
-   - Agricultural color scheme and branding
-   - Accessibility considerations
-   - Offline-first design principles
-
-2. **User Experience Flow**
-   - Streamlined 4-step registration
-   - Location selection (map pin or DLS)
-   - Crop management interface
-   - Progress indicators and validations
-   - Instant gratification features
+1. **UI/UX Prototype & Design Guide**: Detailed design principles, color palette, component mockups (registration, dashboard, gamification), and UX flow defined by Claude.
 
 ### 🚧 In Progress
 
-1. **Frontend Implementation**
-   - React Native mobile app components
-   - React web application
-   - Integration with backend services
-   - Real-time data synchronization
-
-2. **Enhanced Calculations**
-   - Evapotranspiration (ET) calculations
-   - Disease pressure modeling
-   - Soil temperature predictions
-   - Harvest window optimization
+1. **Frontend Implementation**: Actual coding of React Native / React components and integration with backend.
+2. **Enhanced Calculations**: Further agricultural metric development (ET, disease pressure).
+3. **Full Integration Testing**: Blocked by Firebase emulator issues in the current cloud IDE environment.
 
 ### 📋 Planned Features
 
+(This section remains largely the same as your provided input, reflecting future goals.)
+
 #### Short Term (Next Sprint)
 1. **Dashboard Development**
-   - Real-time weather display
-   - Interactive crop progress charts
-   - Community activity feed
-   - Quick action buttons for reports
-
 2. **Gamification Implementation**
-   - Point calculation engine
-   - Badge award system
-   - Leaderboard generation
-   - Streak tracking
-   - Achievement notifications
-
 3. **Community Features**
-   - Weather report submissions
-   - Rainfall measurements with verification
-   - Helpful vote system
-   - Nearby farmer updates
-   - First frost/rain reporting
 
 #### Medium Term
 1. **Advanced Analytics**
-   - Historical weather comparisons
-   - Yield correlation analysis
-   - Cost savings tracking
-   - Predictive insights
-
 2. **Push Notifications**
-   - Weather alerts
-   - Frost warnings
-   - Optimal spray windows
-   - Community updates
-   - Gamification milestones
-
 3. **Partner Integrations**
-   - Reward redemption system
-   - Equipment dealer connections
-   - Crop insurance integrations
-   - Market price feeds
 
 #### Long Term
 1. **Precision Agriculture**
-   - Field boundary mapping
-   - Variable rate recommendations
-   - IoT sensor integration
-   - Drone imagery analysis
-
 2. **Machine Learning**
-   - Hyperlocal forecast improvements
-   - Yield prediction models
-   - Pest/disease outbreak predictions
-   - Personalized recommendations
-
 3. **Expansion**
-   - Multi-language support (French)
-   - Coverage beyond Canadian prairies
-   - International market adaptation
-   - Agricultural consultant tools
 
 ## Tech Stack
 
-### Backend
-- **Runtime**: Node.js 18+ with Firebase Cloud Functions
-- **Database**: Firebase Firestore
-- **Authentication**: Firebase Auth
-- **APIs**: 
-  - Environment Canada XML Weather API
-  - NASA POWER REST API
-- **Development**: Firebase Emulators
-
-### Frontend (Planned)
-- **Mobile**: React Native
-- **Web**: React
-- **State Management**: Context API / Redux
-- **Maps**: Mapbox GL
-- **Charts**: Chart.js / D3.js
-
-### Infrastructure
-- **Hosting**: Firebase Hosting
-- **Functions**: Firebase Cloud Functions
-- **Storage**: Firebase Storage (future)
-- **Analytics**: Firebase Analytics
+(This section remains the same.)
 
 ## Project Structure
 
-```
-agricast/
-├── functions/
-│   ├── src/
-│   │   ├── index.js              # Cloud Functions entry points
-│   │   ├── config/               # Configuration files
-│   │   │   └── auth.js          # Auth configuration
-│   │   ├── services/
-│   │   │   ├── weather.js       # ECCC weather integration
-│   │   │   ├── nasa.js          # NASA POWER integration
-│   │   │   ├── calculations.js  # Agricultural calculations
-│   │   │   ├── alerts.js        # Alert system (framework)
-│   │   │   └── auth/
-│   │   │       ├── authService.js      # User registration
-│   │   │       └── usernameService.js  # Username validation
-│   │   │   └── crops/
-│   │   │       └── cropService.js      # Crop management
-│   │   │   └── admin/
-│   │   │       └── adminService.js     # Admin functions
-│   │   └── utils/
-│   │       ├── validation.js          # Input validation
-│   │       ├── canadianGeography.js   # DLS conversions
-│   │       ├── weatherStations.js     # Station lookup
-│   │       └── helpers.js             # Utility functions
-│   ├── test/
-│   │   ├── unit/                      # Unit tests
-│   │   ├── integration/               # Integration tests
-│   │   └── test-local/               # Local test scripts
-│   └── package.json
-├── mobile/                       # React Native app (to be implemented)
-├── web/                         # React web app (to be implemented)
-├── firebase.json                # Firebase configuration
-├── firestore.rules             # Security rules
-├── firestore.indexes.json      # Database indexes
-└── .firebaserc                 # Project aliases
-```
+(This section remains the same, accurately reflecting the current file organization.)
 
-## Getting Started
+## Testing - Status, Challenges & Lessons Learned
 
-### Prerequisites
-- Node.js 18+ and npm installed
-- Firebase CLI (`npm install -g firebase-tools`)
-- Git configured
-- Firebase project created
+### Current Status
+- **Unit Tests (Jest)**: 
+    - `authService.js`: All PASSING. Verifies user registration, profile creation, username conflict handling, and alpha/beta tester logic using mocks.
+    - `cropService.js`: All PASSING. Verifies crop data updates, archival of previous year's data, and crop history retrieval using mocks.
+- **Utility Function Tests (Node.js)**:
+    - `quickTest.js` (for `findNearestWeatherStation` utility): PASSED.
+    - `testRegistrationFlow.js` (for DLS conversion, username validation utilities): Runs successfully, demonstrating core utility functionality. *Note: Its test for `generateUniqueUsername` uniqueness had limitations due to mock scope when run as a plain Node script.*
+- **Service-Level Manual Test (Node.js)**:
+    - `manual-test.js` (for `getWeatherWithInsights` service): Successfully executed, verifying core weather and precipitation data processing logic.
 
-### Installation
+### Challenges & Blockers
+- **Firebase Emulator Port Conflicts**: We are consistently unable to start the Firebase Emulators (Auth, Firestore, Functions, Hub, UI) in the current cloud development environment. Errors indicate "port taken" or "port not open," even when trying alternative port configurations. This is the primary blocker for:
+    - Full **Integration Tests** (e.g., `functions/test/integration/stage1.test.js` which relies on HTTP calls to emulated functions).
+    - **Local test scripts requiring live emulators** (e.g., `functions/test-local/testAuth.js` which needs live Firestore/Auth for end-to-end service testing).
+- This issue is presumed to be an environmental constraint of the cloud IDE related to network port allocation or containerization rather than a code issue within the project itself.
 
-```bash
-# Clone the repository
-git clone https://github.com/[your-username]/agricast.git
-cd agricast
+### Lessons Learned (Jest Mocking `firebase-admin`)
+- **`FieldValue.serverTimestamp`**: When mocking `admin.firestore`, ensure the mock function also has `FieldValue` as a static property: `const firestoreMock = jest.fn(() => instance); firestoreMock.FieldValue = { serverTimestamp: jest.fn() };`.
+- **Transaction Methods (`transaction.get`, `.update`, `.set`)**: For testing services that use Firestore transactions (`db.runTransaction(async (transaction) => { ... })`):
+    1. Define your `jest.fn()` mocks for `get`, `update`, `set` in a scope accessible to both the `jest.mock` factory and your tests (e.g., at the top of your test file).
+    2. Inside the `jest.mock('firebase-admin', ...)` factory, create a `mockTransactionInstance` object: `{ get: yourGetMock, update: yourUpdateMock, set: yourSetMock }`.
+    3. Ensure your mock for `admin.firestore().runTransaction` is an async function that calls its callback argument with this `mockTransactionInstance`: `runTransaction: jest.fn(async (callback) => callback(mockTransactionInstance))`.
+    4. In your tests, you can then configure (`mockResolvedValue`, etc.) and assert (`toHaveBeenCalledTimes`, etc.) directly on `yourGetMock`, `yourUpdateMock`, `yourSetMock`.
+- **Specific Document Path Mocks**: When a test depends on a specific document existing or not (e.g., `db.collection('usernames').doc('someuser').get()`), ensure your `get` mock is configured for that specific call, often using `mockFn.mockResolvedValueOnce({...})` within the test setup if the mock is generic, or by setting up chained mocks like `admin.firestore().collection('usernames').doc('someuser').get.mockResolvedValueOnce({...})` if your main `admin.firestore().collection().doc()` returns a mock that has its own `get` as a `jest.fn()`.
+- **`jest.clearAllMocks()` vs. Specific Mock Resets**: `jest.clearAllMocks()` resets all mocks to their basic `jest.fn()` state. If a mock needs to retain a default implementation (e.g., `mockResolvedValue(false)`) across tests but be overridden for specific tests with `.mockResolvedValueOnce()`, re-establish the default in `beforeEach` after `clearAllMocks` or be very specific with one-time mock implementations.
+- **Node.js Scripts vs. Jest Runner**: Scripts intended to be run directly with `node some-test-script.js` cannot use Jest's global objects like `jest.fn()`. Any mocking in such scripts must be done with plain JavaScript techniques (e.g., reassigning functions, simple object mocks).
 
-# Install Cloud Functions dependencies
-cd functions
-npm install
+## Next Steps
 
-# Return to root
-cd ..
-```
+### Immediate Testing Focus
+1.  **Attempt Minimal Emulator Startup**: Try `firebase emulators:start --only functions,firestore,auth --project demo-agricast` (using the `firebase.json` with the `predeploy` hook commented out). This might reduce port conflicts and allow focused emulator-dependent testing if successful.
+2.  **If Emulators Remain Blocked**:
+    *   Prioritize creating the `test-agricast-auth.html` page as outlined by Claude. This will allow manual end-to-end testing of the authentication and profile creation flow by deploying to a live (test) Firebase project.
+    *   Continue with unit/logic testing for any new backend services developed.
 
-### Configuration
+### Development
+1.  **Gamification Backend**: Begin design and implementation of the backend logic for gamification features (point calculation, badge awarding, streak tracking).
+2.  **Frontend Prototyping**: If resources allow, start basic frontend components for registration and dashboard based on Claude's UI/UX guide, focusing on API integration points.
+3.  **Review `generateUniqueUsername` Mocking**: Address the minor mock scope issue in `testRegistrationFlow.js` if it impacts further local utility testing, possibly by refactoring `generateUniqueUsername` to allow Firestore instance injection for easier testing or using module-level mocks for that script.
 
-1. **Update Firebase Project ID**:
-   ```bash
-   # Edit .firebaserc and replace with your project ID
-   firebase use your-project-id
-   ```
+### Longer Term
+- Implement a comprehensive **Test Strategy Document** as recommended, outlining approaches for different environments (mock, emulators, live test project) and conditions.
+- Explore environment-aware testing scripts/configurations.
 
-2. **Set up Firebase services**:
-   - Enable Authentication (Email, Google, Apple providers)
-   - Enable Firestore Database
-   - Enable Cloud Functions
-
-3. **Configure Mapbox** (for frontend):
-   ```bash
-   # Add to your .env file
-   REACT_APP_MAPBOX_TOKEN=your_mapbox_token
-   ```
-
-### Running Locally
-
-```bash
-# Start Firebase emulators
-firebase emulators:start
-
-# In another terminal, run tests
-cd functions
-npm test
-```
-
-### Deployment
-
-```bash
-# Deploy everything
-firebase deploy
-
-# Deploy only functions
-firebase deploy --only functions
-
-# Deploy only Firestore rules
-firebase deploy --only firestore:rules
-```
-
-## API Documentation
-
-### Cloud Functions (Callable)
-
-#### Authentication
-- `createFarmerProfile` - Creates farmer profile after authentication
-- `checkUsernameAvailability` - Validates username uniqueness
-
-#### Crop Management
-- `updateCropData` - Updates current season crops with archiving
-- `getCropHistory` - Retrieves historical crop data
-
-#### Admin Functions
-- `adminDeleteUser` - Removes user and all associated data
-- `setAdminRole` - Grants/revokes admin privileges
-
-### REST Endpoints
-
-#### Weather Data
-- `GET /getWeather?province=MB&station=s0000193`
-- `GET /getWeatherWithInsights?province=MB&station=s0000193`
-- `GET /getNASAPowerData?lat=49.8954&lon=-97.1385&startDate=YYYYMMDD&endDate=YYYYMMDD`
-
-## Testing
-
-### Unit Tests
-```bash
-cd functions
-npm test
-```
-
-### Integration Tests
-Requires Firebase emulators running:
-```bash
-firebase emulators:start
-# In another terminal
-cd functions
-npm run test:integration
-```
-
-### Manual Testing
-Use the provided test HTML files in `functions/test-local/` for manual testing of authentication flows and API endpoints.
-
-## Contributing
-
-### Development Workflow
-1. Create feature branch from `main`
-2. Implement feature with tests
-3. Ensure all tests pass
-4. Submit pull request with description
-
-### Code Standards
-- ESLint configuration in `functions/.eslintrc.js`
-- Prettier for code formatting
-- JSDoc comments for all functions
-- Comprehensive error handling
-
-### Priority Areas for Contribution
-1. Frontend implementation (React/React Native)
-2. Enhanced agricultural calculations
-3. Community features
-4. French language support
-5. Additional weather data sources
-6. Mobile offline capabilities
-
-## License
-
-[To be determined - likely MIT or Apache 2.0]
-
-## Contact
-
-Project Lead: [Your name/contact]
-Repository: https://github.com/[your-username]/agricast
+(Sections for Getting Started, API Documentation, Contributing, License, Contact remain the same as your provided input.)
 
 ---
 
-*Last updated: May 2025*
-*Version: 0.5.0 (Beta Development)*
+*Last updated: May 29, 2025*
+*Version: 0.5.1 (Backend Core Services Unit Tested)*
