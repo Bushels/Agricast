@@ -1,7 +1,5 @@
 {
   "projects": {
-    "default": "agricast-your-project-id",
-    "staging": "agricast-staging",
-    "production": "agricast-prod"
+    "default": "demo-agricast"
   }
 }
